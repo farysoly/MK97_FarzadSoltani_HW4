@@ -8,7 +8,4 @@ public interface IDefinition<T>
     bool Update(T entity);
     List<T> GetAll();
     T GetById(int id);
-    string Serialize(List<T> entity);
-    List<T> Deserialize(string dbContent);
-
 }
