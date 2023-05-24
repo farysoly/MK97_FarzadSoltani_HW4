@@ -2,9 +2,10 @@
 
 public interface IDefinition<T>
 {
-    bool Create(T entity);
-    bool Delete(T entity);
-    bool Update(int id);
+    void CreateFile();
+    bool Insert(T entity);
+    bool Delete(int id);
+    bool Update(T entity);
     List<T> GetAll();
     T GetById(int id);
     string Serialize(List<T> entity);

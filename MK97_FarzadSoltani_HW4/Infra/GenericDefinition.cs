@@ -1,47 +1,107 @@
-﻿namespace MK97_FarzadSoltani_HW4.Infra;
+﻿using Newtonsoft.Json;
+using System.Reflection;
+
+namespace MK97_FarzadSoltani_HW4.Infra;
 
 public class GenericDefinition<T> : IDefinition<T> where T : class
 {
-    string fileDir = Environment.CurrentDirectory;
+    string db = Environment.CurrentDirectory;
+    List<T> list;
 
-    public GenericDefinition(string storageName)
+    public GenericDefinition(string fileName)
     {
-        fileDir = $@"{fileDir}\{storageName}.txt";
+        db = $@"{db}\{fileName}.txt";
+        list = new List<T>();
+        if (!File.Exists(db))
+            CreateFile();
     }
-    public bool Create(T entity)
+    public void CreateFile()
     {
-        throw new NotImplementedException();
+        File.Create(db);
+    }
+    public bool Insert(T entity)
+    {
+        var content = File.ReadAllText(db);
+        list.Clear();
+        list = Deserialize(content);
+        list.Add(entity);
+        content += Serialize(list);
+        File.WriteAllText(db, content);
+        return true;
     }
 
-    public bool Delete(T entity)
+    public bool Delete(int id)
     {
-        throw new NotImplementedException();
-    }
+        Type itemType = typeof(T);
+        PropertyInfo keyProperty = itemType.GetProperty("Id");
+        var content = File.ReadAllText(db);
+        list.Clear();
+        list = Deserialize(content);
+        foreach (T item in list)
+        {
+            object itemKey = keyProperty.GetValue(item);
+            if (itemKey != null && itemKey.Equals(id))
+            {
+                list.Remove(item);
 
-    public List<T> Deserialize(string dbContent)
-    {
-        throw new NotImplementedException();
+            }
+        }
+        content += Serialize(list);
+        File.WriteAllText(db, content);
+        return true;
     }
 
     public List<T> GetAll()
     {
-        throw new NotImplementedException();
+        return Deserialize(File.ReadAllText(db));
     }
 
     public T GetById(int id)
     {
-        throw new NotImplementedException();
+        Type itemType = typeof(T);
+        PropertyInfo keyProperty = itemType.GetProperty("Id");
+        foreach (T item in list)
+        {
+            object itemKey = keyProperty.GetValue(item);
+            if (itemKey != null && itemKey.Equals(id))
+            {
+                return item;
+
+            }
+        }
+        return null;
+    }
+
+
+    public bool Update(T entity)
+    {
+        var content = File.ReadAllText(db);
+        list.Clear();
+        list = Deserialize(content);
+        Type type = typeof(T);
+        PropertyInfo idKey = type.GetProperty("Id");
+        var entityId = idKey.GetValue(entity);
+        for (int i = 0; i < list.Count; i++)
+        {
+            var listId = idKey.GetValue(list[i]);
+            if (listId == entityId)
+            {
+                list[i] = entity;
+            }
+        }
+        content += Serialize(list);
+        File.WriteAllText(db, content);
+        return true;
     }
 
     public string Serialize(List<T> entity)
     {
-        throw new NotImplementedException();
+        var res = JsonConvert.SerializeObject(entity);
+        return res;
     }
-
-    public bool Update(int id)
+    public List<T> Deserialize(string dbContent)
     {
-        throw new NotImplementedException();
+        var res = JsonConvert.DeserializeObject<List<T>>(dbContent);
+        return res.ToList();
     }
-
-
 }
